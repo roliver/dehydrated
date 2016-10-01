@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+#
+# Example how to deploy a DNS challenge using nsupdate
+#
+
+set -e
+set -u
+set -o pipefail
+
+kinit -k -t /etc/krb5.keytab -p host/$(hostname -f)
+
+NSUPDATE="nsupdate -g"
+TTL=300
+
+case "$1" in
+    "deploy_challenge")
+        printf "update add _acme-challenge.%s. %d in TXT \"%s\"\n\n" "${2}" "${TTL}" "${4}" | $NSUPDATE
+        ;;
+    "clean_challenge")
+        printf "update delete _acme-challenge.%s. %d in TXT \"%s\"\n\n" "${2}" "${TTL}" "${4}" | $NSUPDATE
+        ;;
+    "deploy_cert")
+        # do nothing for now
+        ;;
+    "unchanged_cert")
+        # do nothing for now
+        ;;
+    *)
+        echo Unkown hook "${1}"
+        exit 1
+        ;;
+esac
+
+exit 0
